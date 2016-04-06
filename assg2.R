@@ -13,19 +13,21 @@ assg2_1 <- function() {
     print(paste("median of total number of steps taken each day is: ", median_step))
 
     # step 4,5: time series plot of the average number of steps taken
-    step_avg <- with(act_data, tapply(steps, date, mean, na.rm=TRUE))
-    step_date <- as.Date(names(step_avg))
-    plot(step_date, step_avg, type="l")
-    max_date <- which(step_avg==max(step_avg, na.rm=TRUE))
-    abline(v=step_date[max_date], col="red")
-    print(paste(step_date[max_date], " contains the max num of steps", 
-                step_avg[max_date]))
+    five_step_avg <- with(act_data, tapply(steps, interval, mean, na.rm=TRUE))
+    plot(names(five_step_avg), five_step_avg, type="l", xlab="5-min interval",
+         ylab="average number of steps taken", 
+         main="Time series plot of the average number of steps taken")
+    max_time <- which(five_step_avg==max(five_step_avg, na.rm=TRUE))
+    abline(v=names(five_step_avg[max_time]))
+    print(paste(names(max_time), "contains the max num of steps",
+                five_step_avg[max_time]))
     
     # step 6: Code to describe and show a strategy for imputing missing data
     # let's see how many NAs are there
     total_na_step <- sum(is.na(act_data$steps))
     print(paste("Total number of missing values in the dataset is: ",total_na_step))
     # set the NAs = mean of that date
+    step_avg <- with(act_data, tapply(steps, date, mean, na.rm=TRUE))
     step_avg[is.na(step_avg)] <- 0
     step_na <- is.na(act_data$steps)
     step_na_date <- act_data$date[step_na]
@@ -50,8 +52,21 @@ assg2_1 <- function() {
     # and weekend
     week <- c("weekday","weekday","weekday","weekday","weekday","weekend","weekend")
     names(week) <- c("Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday")
-    act_data$week <- week[weekdays(as.Date(d2$date))]
-    step_sum2 <- with(act_data, tapply(steps, date, sum, na.rm=TRUE))
+    act_data$week <- week[weekdays(as.Date(act_data$date))]
+    weekday_act_data <- subset(act_data, week=="weekday")
+    weekend_act_data <- subset(act_data, week=="weekend")
+    weekday_step <- with(weekday_act_data, tapply(steps, interval, sum, 
+                                                  na.rm=TRUE))
+    weekend_step <- with(weekend_act_data, tapply(steps, interval, sum, 
+                                                  na.rm=TRUE))
+    rng <- range(weekend_step, weekday_step)
+    par(mfrow=c(2,1))
+    plot(names(weekday_step), weekday_step, type="l", xlab="5-min interval",
+         ylab="average number of steps taken", ylim=rng,
+         main="Activity pattern in weekdays")
+    plot(names(weekend_step), weekend_step, type="l", xlab="5-min interval",
+         ylab="average number of steps taken", ylim=rng,
+         main="Activity pattern in weekends")
     
     act_data
 }
